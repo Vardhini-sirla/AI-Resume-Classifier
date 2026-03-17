@@ -1,12 +1,13 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
+from config import get_database
 import os
 
-load_dotenv()  # loads variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
-CORS(app)  # allows React frontend to talk to this backend
+CORS(app)
 
 # Upload folder config
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
@@ -21,7 +22,14 @@ def health_check():
 def test_route():
     return jsonify({"message": "API is working!"})
 
+@app.route('/api/db-test', methods=['GET'])
+def db_test():
+    try:
+        db = get_database()
+        db.command('ping')
+        return jsonify({"status": "connected", "message": "MongoDB is working!"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
-
-
