@@ -2,6 +2,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 from config import get_database
+from routes.upload import upload_bp
 import os
 
 load_dotenv()
@@ -13,6 +14,9 @@ CORS(app)
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+# Register blueprints
+app.register_blueprint(upload_bp)
 
 @app.route('/health', methods=['GET'])
 def health_check():
