@@ -7,3 +7,5 @@
 .upload-section button:hover { background: #1557b0; }
 .upload-section button:disabled { background: #ccc; }
 .message { margin-top: 10px; color: #333; }
+.resume-list { margin-top: 30px; }
+.resume-card { display: flex; justify-content: space-between; padding: 12px; border: 1px solid #eee; border-radius: 6px; margin-bottom: 8px; }

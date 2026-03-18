@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 import ResumeUpload from './components/ResumeUpload'
+import ResumeList from './components/ResumeList'
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       </header>
       <main>
         <ResumeUpload />
+        <ResumeList />
       </main>
     </div>
   )
