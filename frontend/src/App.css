@@ -1,0 +1,9 @@
+.app { max-width: 800px; margin: 0 auto; padding: 20px; font-family: sans-serif; }
+.app-header { text-align: center; margin-bottom: 30px; }
+.upload-section { border: 2px dashed #ccc; border-radius: 8px; padding: 30px; text-align: center; }
+.upload-section input { margin: 10px 0; }
+.upload-section button { background: #1a73e8; color: white; border: none;
+  padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; }
+.upload-section button:hover { background: #1557b0; }
+.upload-section button:disabled { background: #ccc; }
+.message { margin-top: 10px; color: #333; }
