@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
+from routes.score import score_bp
 from config import get_database
 from routes.upload import upload_bp
 import os
@@ -17,6 +18,7 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # Register blueprints
 app.register_blueprint(upload_bp)
+app.register_blueprint(score_bp)
 
 @app.route('/health', methods=['GET'])
 def health_check():
