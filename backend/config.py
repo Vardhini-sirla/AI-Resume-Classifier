@@ -1,11 +1,13 @@
 from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
+import certifi
 
 load_dotenv()
 
 def get_database():
-    client = MongoClient(os.getenv("MONGODB_URI"))
+    uri = os.getenv("MONGODB_URI")
+    client = MongoClient(uri, tlsCAFile=certifi.where())
     db = client["resume_classifier"]
     return db
 
