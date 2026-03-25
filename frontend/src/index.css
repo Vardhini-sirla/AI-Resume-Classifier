@@ -1,111 +1,190 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+import { useState, useEffect } from 'react'
+import axios from 'axios'
+import './App.css'
+import { Upload, FileText, BarChart3, Settings, LogOut } from 'lucide-react'
+import ResumeUpload from './components/ResumeUpload'
+import ResumeList from './components/ResumeList'
+import JobDescription from './components/JobDescription'
+import ScoreResults from './components/ScoreResults'
+import CandidateModal from './components/CandidateModal'
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+const API_URL = 'http://localhost:5000'
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+function App() {
+  const [resumes, setResumes] = useState([])
+  const [results, setResults] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState('dashboard')
+  const [selectedCandidate, setSelectedCandidate] = useState(null)
+  const [filter, setFilter] = useState('all')
+  const [weights, setWeights] = useState({ skills: 50, experience: 30, education: 20 })
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  const fetchResumes = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/api/resumes`)
+      setResumes(res.data.resumes)
+    } catch (err) {
+      console.error('Failed to fetch resumes', err)
+    }
   }
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
+  useEffect(() => { fetchResumes() }, [])
+
+  const handleScoreAll = async (jdText) => {
+    setLoading(true)
+    try {
+      const res = await axios.post(`${API_URL}/api/score-all`, { jd_text: jdText })
+      setResults(res.data.results)
+      fetchResumes()
+    } catch (err) {
+      alert(err.response?.data?.error || 'Scoring failed')
+    }
+    setLoading(false)
   }
-}
 
-body {
-  margin: 0;
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+  const handleScoreSingle = async (resumeId, jdText) => {
+    try {
+      const res = await axios.post(`${API_URL}/api/score`, {
+        resume_id: resumeId,
+        jd_text: jdText
+      })
+      return res.data
+    } catch (err) {
+      console.error(err)
+      return null
+    }
   }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
+
+  const filteredResults = results.filter(r => {
+    if (filter === 'all') return true
+    if (filter === 'tier1') return r.tier.includes('Tier 1')
+    if (filter === 'tier2') return r.tier.includes('Tier 2')
+    if (filter === 'tier3') return r.tier.includes('Tier 3')
+    return true
+  })
+
+  const stats = {
+    total: results.length,
+    tier1: results.filter(r => r.tier.includes('Tier 1')).length,
+    tier2: results.filter(r => r.tier.includes('Tier 2')).length,
+    tier3: results.filter(r => r.tier.includes('Tier 3')).length
   }
-}
-p {
-  margin: 0;
+
+  return (
+    <div className='dashboard'>
+      <aside className='sidebar'>
+        <h1>AI Resume Classifier</h1>
+        <p>Smart HR Shortlisting</p>
+        <div className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
+          <BarChart3 size={18} /> Dashboard
+        </div>
+        <div className={`nav-item ${activeTab === 'upload' ? 'active' : ''}`} onClick={() => setActiveTab('upload')}>
+          <Upload size={18} /> Upload Resumes
+        </div>
+        <div className={`nav-item ${activeTab === 'resumes' ? 'active' : ''}`} onClick={() => setActiveTab('resumes')}>
+          <FileText size={18} /> All Resumes
+        </div>
+        <div className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
+          <Settings size={18} /> Settings
+        </div>
+      </aside>
+
+      <main className='main-content'>
+        {activeTab === 'dashboard' && (
+          <>
+            <h2 style={{marginBottom: 20}}>Dashboard</h2>
+
+            {results.length > 0 && (
+              <div className='stats-row'>
+                <div className='stat-card'>
+                  <div className='label'>Total Candidates</div>
+                  <div className='value blue'>{stats.total}</div>
+                </div>
+                <div className='stat-card'>
+                  <div className='label'>Tier 1 - Strong</div>
+                  <div className='value green'>{stats.tier1}</div>
+                </div>
+                <div className='stat-card'>
+                  <div className='label'>Tier 2 - Potential</div>
+                  <div className='value yellow'>{stats.tier2}</div>
+                </div>
+                <div className='stat-card'>
+                  <div className='label'>Tier 3 - Weak</div>
+                  <div className='value red'>{stats.tier3}</div>
+                </div>
+              </div>
+            )}
+
+            <div className='section'>
+              <div className='section-header'>
+                <h2>Job Description</h2>
+              </div>
+              <JobDescription onSubmit={handleScoreAll} loading={loading} />
+            </div>
+
+            {results.length > 0 && (
+              <div className='section'>
+                <div className='section-header'>
+                  <h2>Candidate Rankings</h2>
+                </div>
+                <div className='filter-tabs'>
+                  <div className={`filter-tab ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>All ({stats.total})</div>
+                  <div className={`filter-tab ${filter === 'tier1' ? 'active' : ''}`} onClick={() => setFilter('tier1')}>Tier 1 ({stats.tier1})</div>
+                  <div className={`filter-tab ${filter === 'tier2' ? 'active' : ''}`} onClick={() => setFilter('tier2')}>Tier 2 ({stats.tier2})</div>
+                  <div className={`filter-tab ${filter === 'tier3' ? 'active' : ''}`} onClick={() => setFilter('tier3')}>Tier 3 ({stats.tier3})</div>
+                </div>
+                <ScoreResults results={filteredResults} onSelect={setSelectedCandidate} />
+              </div>
+            )}
+          </>
+        )}
+
+        {activeTab === 'upload' && (
+          <div className='section'>
+            <div className='section-header'>
+              <h2>Upload Resumes</h2>
+            </div>
+            <ResumeUpload onUploadSuccess={fetchResumes} />
+          </div>
+        )}
+
+        {activeTab === 'resumes' && (
+          <div className='section'>
+            <div className='section-header'>
+              <h2>All Resumes ({resumes.length})</h2>
+            </div>
+            <ResumeList resumes={resumes} />
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div className='section'>
+            <div className='section-header'>
+              <h2>Scoring Weights</h2>
+            </div>
+            <p style={{color: '#64748b', fontSize: 14, marginBottom: 20}}>Adjust how much each category affects the total score</p>
+            <div className='slider-group'>
+              <label><span>Skills</span><span>{weights.skills}%</span></label>
+              <input type='range' min='0' max='100' value={weights.skills} onChange={(e) => setWeights({...weights, skills: parseInt(e.target.value)})} />
+            </div>
+            <div className='slider-group'>
+              <label><span>Experience</span><span>{weights.experience}%</span></label>
+              <input type='range' min='0' max='100' value={weights.experience} onChange={(e) => setWeights({...weights, experience: parseInt(e.target.value)})} />
+            </div>
+            <div className='slider-group'>
+              <label><span>Education</span><span>{weights.education}%</span></label>
+              <input type='range' min='0' max='100' value={weights.education} onChange={(e) => setWeights({...weights, education: parseInt(e.target.value)})} />
+            </div>
+            <p style={{color: '#94a3b8', fontSize: 13}}>Total: {weights.skills + weights.experience + weights.education}% (should equal 100%)</p>
+          </div>
+        )}
+
+        {selectedCandidate && (
+          <CandidateModal candidate={selectedCandidate} onClose={() => setSelectedCandidate(null)} />
+        )}
+      </main>
+    </div>
+  )
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
+export default App

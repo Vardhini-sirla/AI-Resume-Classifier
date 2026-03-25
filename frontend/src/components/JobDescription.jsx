@@ -1,20 +1,23 @@
 import { useState } from 'react'
+import { Play } from 'lucide-react'
 
 function JobDescription({ onSubmit, loading }) {
   const [jdText, setJdText] = useState('')
 
   return (
-    <div className='jd-section'>
-      <h2>Job Description</h2>
+    <div>
       <textarea
-        placeholder='Paste the job description here...'
+        className='jd-input'
+        placeholder='Paste the job description here... Include requirements, skills, experience level, and education.'
         value={jdText}
         onChange={(e) => setJdText(e.target.value)}
-        rows={6}
       />
-      <button onClick={() => onSubmit(jdText)} disabled={loading || !jdText}>
-        {loading ? 'Scoring...' : 'Score All Resumes'}
-      </button>
+      <div style={{marginTop: 12}}>
+        <button className='btn btn-success' onClick={() => onSubmit(jdText)} disabled={loading || !jdText.trim()}>
+          <Play size={16} />
+          {loading ? 'Analyzing Resumes...' : 'Score All Resumes'}
+        </button>
+      </div>
     </div>
   )
 }
