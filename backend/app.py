@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from routes.score import score_bp
 from config import get_database
 from routes.upload import upload_bp
+from routes.delete import delete_bp
 import os
 
 load_dotenv()
@@ -21,6 +22,7 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.register_blueprint(upload_bp)
 app.register_blueprint(score_bp)
 app.register_blueprint(export_bp)
+app.register_blueprint(delete_bp)
 
 @app.route('/health', methods=['GET'])
 def health_check():

@@ -174,7 +174,7 @@ function App() {
             <div className='section-header'>
               <h2>All Resumes ({resumes.length})</h2>
             </div>
-            <ResumeList resumes={resumes} />
+            <ResumeList resumes={resumes} onDelete={fetchResumes} />
           </div>
         )}
 
