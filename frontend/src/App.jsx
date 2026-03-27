@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import './App.css'
-import { Upload, FileText, BarChart3, Settings, LogOut } from 'lucide-react'
+import { Upload, FileText, BarChart3, Settings } from 'lucide-react'
 import ResumeUpload from './components/ResumeUpload'
 import ResumeList from './components/ResumeList'
 import JobDescription from './components/JobDescription'
@@ -52,6 +52,23 @@ function App() {
     } catch (err) {
       console.error(err)
       return null
+    }
+  }
+
+  const exportResults = async (format) => {
+    try {
+      const res = await axios.post(`${API_URL}/api/export/${format}`,
+        { results },
+        { responseType: 'blob' }
+      )
+      const url = window.URL.createObjectURL(new Blob([res.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `resume_rankings.${format === 'excel' ? 'xlsx' : 'pdf'}`
+      link.click()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      alert('Export failed')
     }
   }
 
@@ -126,6 +143,10 @@ function App() {
               <div className='section'>
                 <div className='section-header'>
                   <h2>Candidate Rankings</h2>
+                  <div style={{display: 'flex', gap: 8}}>
+                    <button className='btn btn-outline' onClick={() => exportResults('excel')}>Export Excel</button>
+                    <button className='btn btn-outline' onClick={() => exportResults('pdf')}>Export PDF</button>
+                  </div>
                 </div>
                 <div className='filter-tabs'>
                   <div className={`filter-tab ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>All ({stats.total})</div>
