@@ -32,8 +32,11 @@ def score_resume():
     if not resume:
         return jsonify({'error': 'Resume not found'}), 404
     
-    # Extract resume data with AI
-    resume_data = extract_resume_data(resume['raw_text'])
+    # Use cached parsed_data if available
+    if resume.get('parsed_data') and resume['parsed_data'].get('name'):
+        resume_data = resume['parsed_data']
+    else:
+        resume_data = extract_resume_data(resume['raw_text'])
     if not resume_data:
         return jsonify({'error': 'Failed to extract resume data'}), 500
     
@@ -88,10 +91,13 @@ def score_all_resumes():
     results = []
     
     for resume in resumes:
-        # Extract resume data
-        resume_data = extract_resume_data(resume['raw_text'])
-        if not resume_data:
-            continue
+        # Use cached parsed_data if available
+        if resume.get('parsed_data') and resume['parsed_data'].get('name'):
+            resume_data = resume['parsed_data']
+        else:
+            resume_data = extract_resume_data(resume['raw_text'])
+            if not resume_data:
+                continue
         
         # Calculate score
         result = calculate_score(resume_data, jd_data)
