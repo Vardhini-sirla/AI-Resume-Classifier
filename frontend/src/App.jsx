@@ -8,7 +8,7 @@ import JobDescription from './components/JobDescription'
 import ScoreResults from './components/ScoreResults'
 import CandidateModal from './components/CandidateModal'
 
-const API_URL = 'http://localhost:5000'
+const API_URL = 'https://ai-resume-classifier-7g4y.onrender.com'
 
 function App() {
   const [resumes, setResumes] = useState([])

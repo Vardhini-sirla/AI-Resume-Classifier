@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import axios from 'axios'
 import { Upload, FileCheck } from 'lucide-react'
 
-const API_URL = 'http://localhost:5000'
+const API_URL = 'https://ai-resume-classifier-7g4y.onrender.com'
 
 function ResumeUpload({ onUploadSuccess }) {
   const [files, setFiles] = useState([])
