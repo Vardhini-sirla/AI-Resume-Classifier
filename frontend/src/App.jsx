@@ -7,6 +7,7 @@ import ResumeList from './components/ResumeList'
 import JobDescription from './components/JobDescription'
 import ScoreResults from './components/ScoreResults'
 import CandidateModal from './components/CandidateModal'
+import AuthPage from './components/AuthPage'
 import { TierPieChart, ScoreBarChart, ScoreDistributionChart, CandidateRadarChart } from './components/Charts'
 import translations, { languageNames } from './translations'
 
@@ -21,6 +22,9 @@ function App() {
   const [filter, setFilter] = useState('all')
   const [weights, setWeights] = useState({ skills: 50, experience: 30, education: 20 })
   const [lang, setLang] = useState('en')
+  const [user, setUser] = useState(null)
+  const [token, setToken] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
 
   const t = translations[lang]
 
@@ -34,6 +38,42 @@ function App() {
   }
 
   useEffect(() => { fetchResumes() }, [])
+
+  useEffect(() => {
+    const savedToken = localStorage.getItem('token')
+    const savedUser = localStorage.getItem('user')
+    if (savedToken && savedUser) {
+      axios.get(`${API_URL}/api/auth/verify`, {
+        headers: { Authorization: `Bearer ${savedToken}` }
+      }).then(res => {
+        setUser(JSON.parse(savedUser))
+        setToken(savedToken)
+        setAuthLoading(false)
+      }).catch(() => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        setAuthLoading(false)
+      })
+    } else {
+      setAuthLoading(false)
+    }
+  }, [])
+
+  const handleLogin = (userData, tokenData) => {
+    setUser(userData)
+    setToken(tokenData)
+  }
+
+  const handleLogout = () => {
+    axios.post(`${API_URL}/api/auth/logout`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).catch(() => {})
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    setUser(null)
+    setToken(null)
+    setResults([])
+  }
 
   const handleScoreAll = async (jdText) => {
     setLoading(true)
@@ -132,6 +172,16 @@ function App() {
     }
   }
 
+  if (authLoading) {
+    return <div style={{minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#f1f5f9'}}>
+      <p style={{color: '#64748b'}}>Loading...</p>
+    </div>
+  }
+
+  if (!user) {
+    return <AuthPage onLogin={handleLogin} t={t} />
+  }
+
   return (
     <div className='dashboard'>
       <aside className='sidebar'>
@@ -163,6 +213,16 @@ function App() {
               <option key={code} value={code}>{name}</option>
             ))}
           </select>
+          <div style={{marginTop: 16, padding: '10px 0', borderTop: '1px solid #334155'}}>
+            <p style={{color: '#94a3b8', fontSize: 12, marginBottom: 8}}>Hi, {user.name}</p>
+            {user.company && <p style={{color: '#64748b', fontSize: 11, marginBottom: 8}}>{user.company}</p>}
+            <button
+              onClick={handleLogout}
+              style={{width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #475569', background: '#334155', color: '#f87171', fontSize: 12, cursor: 'pointer'}}
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </aside>
 

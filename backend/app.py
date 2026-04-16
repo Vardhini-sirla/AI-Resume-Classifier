@@ -1,3 +1,4 @@
+from routes.auth import auth_bp
 from routes.export import export_bp
 from flask import Flask, jsonify
 from flask_cors import CORS
@@ -23,6 +24,8 @@ app.register_blueprint(upload_bp)
 app.register_blueprint(score_bp)
 app.register_blueprint(export_bp)
 app.register_blueprint(delete_bp)
+app.register_blueprint(auth_bp)
+
 
 @app.route('/health', methods=['GET'])
 def health_check():
