@@ -1,4 +1,5 @@
 import { X } from 'lucide-react'
+import { CandidateRadarChart } from './Charts'
 
 function CandidateModal({ candidate, onClose, t }) {
   if (!candidate) return null
@@ -25,6 +26,8 @@ function CandidateModal({ candidate, onClose, t }) {
             {candidate.tier}
           </span>
         </div>
+
+        <CandidateRadarChart candidate={candidate} t={t} />
 
         <div className='breakdown-grid'>
           <div className='breakdown-card' style={{background: '#f0fdf4'}}>
