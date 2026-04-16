@@ -4,7 +4,7 @@ import { Upload, FileCheck } from 'lucide-react'
 
 const API_URL = 'https://ai-resume-classifier-7g4y.onrender.com'
 
-function ResumeUpload({ onUploadSuccess }) {
+function ResumeUpload({ onUploadSuccess, t }) {
   const [files, setFiles] = useState([])
   const [message, setMessage] = useState('')
   const [messageType, setMessageType] = useState('')
@@ -16,7 +16,7 @@ function ResumeUpload({ onUploadSuccess }) {
   }
 
   const handleUpload = async () => {
-    if (files.length === 0) { setMessage('Please select files'); setMessageType('error'); return }
+    if (files.length === 0) { setMessage(t.uploadArea); setMessageType('error'); return }
     setLoading(true)
     let successCount = 0
 
@@ -31,7 +31,7 @@ function ResumeUpload({ onUploadSuccess }) {
       }
     }
 
-    setMessage(`${successCount} of ${files.length} resumes uploaded successfully!`)
+    setMessage(`${successCount} / ${files.length} ${t.uploadSuccess}`)
     setMessageType('success')
     setFiles([])
     if (fileInputRef.current) fileInputRef.current.value = ''
@@ -43,12 +43,12 @@ function ResumeUpload({ onUploadSuccess }) {
     <div>
       <div className='upload-area' onClick={() => fileInputRef.current?.click()}>
         <Upload size={36} color='#94a3b8' />
-        <p>{files.length > 0 ? `${files.length} file(s) selected` : 'Click to select PDF resumes'}</p>
-        <input ref={fileInputRef} type='file' accept='.pdf' multiple onChange={handleFiles} />
+        <p>{files.length > 0 ? `${files.length} ${t.filesSelected}` : t.uploadArea}</p>
+        <input ref={fileInputRef} type='file' accept='.pdf,.docx,.doc' multiple onChange={handleFiles} />
       </div>
       <div style={{marginTop: 12, display: 'flex', gap: 8}}>
         <button className='btn btn-primary' onClick={handleUpload} disabled={loading || files.length === 0}>
-          {loading ? 'Uploading...' : 'Upload Resumes'}
+          {loading ? t.uploading : t.uploadButton}
         </button>
       </div>
       {message && <div className={`message ${messageType}`}>{message}</div>}

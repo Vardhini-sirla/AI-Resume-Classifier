@@ -1,4 +1,4 @@
-function ScoreResults({ results, onSelect }) {
+function ScoreResults({ results, onSelect, t }) {
   if (!results || results.length === 0) return null
 
   const getScoreColor = (score) => {
@@ -11,13 +11,13 @@ function ScoreResults({ results, onSelect }) {
     <table className='results-table'>
       <thead>
         <tr>
-          <th>#</th>
-          <th>Candidate</th>
-          <th>Score</th>
-          <th>Skills</th>
-          <th>Experience</th>
-          <th>Education</th>
-          <th>Tier</th>
+          <th>{t.rank}</th>
+          <th>{t.candidate}</th>
+          <th>{t.score}</th>
+          <th>{t.skills}</th>
+          <th>{t.experience}</th>
+          <th>{t.education}</th>
+          <th>{t.tier}</th>
         </tr>
       </thead>
       <tbody>

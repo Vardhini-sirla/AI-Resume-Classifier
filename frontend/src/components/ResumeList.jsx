@@ -1,30 +1,30 @@
 import { FileText, Trash2 } from 'lucide-react'
 import axios from 'axios'
 
-const API_URL = 'http://localhost:5000'
+const API_URL = 'https://ai-resume-classifier-7g4y.onrender.com'
 
-function ResumeList({ resumes, onDelete }) {
+function ResumeList({ resumes, onDelete, t }) {
   if (!resumes || resumes.length === 0) {
-    return <p style={{color: '#64748b'}}>No resumes uploaded yet.</p>
+    return <p style={{color: '#64748b'}}>{t.noResumes}</p>
   }
 
   const handleDelete = async (id, filename) => {
-    if (!window.confirm(`Delete ${filename}?`)) return
+    if (!window.confirm(`${t.deleteConfirm}`)) return
     try {
       await axios.delete(`${API_URL}/api/resumes/${id}`)
       if (onDelete) onDelete()
     } catch (err) {
-      alert('Failed to delete')
+      alert(t.deleteFailed)
     }
   }
 
   const handleDeleteAll = async () => {
-    if (!window.confirm(`Delete all ${resumes.length} resumes? This cannot be undone.`)) return
+    if (!window.confirm(`${t.deleteAllConfirm}`)) return
     try {
       await axios.delete(`${API_URL}/api/resumes/all`)
       if (onDelete) onDelete()
     } catch (err) {
-      alert('Failed to delete')
+      alert(t.deleteFailed)
     }
   }
 
@@ -32,18 +32,18 @@ function ResumeList({ resumes, onDelete }) {
     <div>
       <div style={{display: 'flex', justifyContent: 'flex-end', marginBottom: 12}}>
         <button className='btn btn-danger' onClick={handleDeleteAll}>
-          <Trash2 size={14} /> Delete All
+          <Trash2 size={14} /> {t.deleteAll}
         </button>
       </div>
       <table className='results-table'>
         <thead>
           <tr>
-            <th>Resume</th>
-            <th>Status</th>
-            <th>Score</th>
-            <th>Tier</th>
-            <th>Uploaded</th>
-            <th>Action</th>
+            <th>{t.candidate}</th>
+            <th>{t.status}</th>
+            <th>{t.score}</th>
+            <th>{t.tier}</th>
+            <th>{t.uploaded}</th>
+            <th>{t.action}</th>
           </tr>
         </thead>
         <tbody>

@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 
-function CandidateModal({ candidate, onClose }) {
+function CandidateModal({ candidate, onClose, t }) {
   if (!candidate) return null
 
   const getScoreColor = (score) => {
@@ -28,25 +28,25 @@ function CandidateModal({ candidate, onClose }) {
 
         <div className='breakdown-grid'>
           <div className='breakdown-card' style={{background: '#f0fdf4'}}>
-            <div className='score-label'>Skills</div>
+            <div className='score-label'>{t.skills}</div>
             <div className='score-value' style={{color: '#16a34a'}}>{candidate.breakdown.skills_score}%</div>
-            <div className='score-weight'>50% weight</div>
+            <div className='score-weight'>50% {t.weight}</div>
           </div>
           <div className='breakdown-card' style={{background: '#fefce8'}}>
-            <div className='score-label'>Experience</div>
+            <div className='score-label'>{t.experience}</div>
             <div className='score-value' style={{color: '#d97706'}}>{candidate.breakdown.experience_score}%</div>
-            <div className='score-weight'>30% weight</div>
+            <div className='score-weight'>30% {t.weight}</div>
           </div>
           <div className='breakdown-card' style={{background: '#eff6ff'}}>
-            <div className='score-label'>Education</div>
+            <div className='score-label'>{t.education}</div>
             <div className='score-value' style={{color: '#3b82f6'}}>{candidate.breakdown.education_score}%</div>
-            <div className='score-weight'>20% weight</div>
+            <div className='score-weight'>20% {t.weight}</div>
           </div>
         </div>
 
         {candidate.details && (
           <div style={{marginTop: 20}}>
-            <h3 style={{fontSize: 15, marginBottom: 8}}>Skills Match</h3>
+            <h3 style={{fontSize: 15, marginBottom: 8}}>{t.skillsMatch}</h3>
             <div>
               {candidate.details.skills?.required_matched?.map(s => (
                 <span key={s} className='skill-tag skill-matched'>{s}</span>
@@ -56,7 +56,7 @@ function CandidateModal({ candidate, onClose }) {
               ))}
             </div>
             <p style={{fontSize: 12, color: '#64748b', marginTop: 8}}>
-              Green = matched, Red = missing
+              🟢 = {t.matched}, 🔴 = {t.missing}
             </p>
           </div>
         )}
