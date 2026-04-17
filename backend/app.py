@@ -7,6 +7,7 @@ from routes.score import score_bp
 from config import get_database
 from routes.upload import upload_bp
 from routes.delete import delete_bp
+from routes.analytics import analytics_bp
 import os
 
 load_dotenv()
@@ -25,6 +26,7 @@ app.register_blueprint(score_bp)
 app.register_blueprint(export_bp)
 app.register_blueprint(delete_bp)
 app.register_blueprint(auth_bp)
+app.register_blueprint(analytics_bp)
 
 
 @app.route('/health', methods=['GET'])

@@ -8,6 +8,7 @@ import JobDescription from './components/JobDescription'
 import ScoreResults from './components/ScoreResults'
 import CandidateModal from './components/CandidateModal'
 import AuthPage from './components/AuthPage'
+import AnalyticsPage from './components/AnalyticsPage'
 import { TierPieChart, ScoreBarChart, ScoreDistributionChart, CandidateRadarChart } from './components/Charts'
 import translations, { languageNames } from './translations'
 
@@ -196,6 +197,9 @@ function App() {
         <div className={`nav-item ${activeTab === 'resumes' ? 'active' : ''}`} onClick={() => setActiveTab('resumes')}>
           <FileText size={18} /> {t.allResumes}
         </div>
+        <div className={`nav-item ${activeTab === 'analytics' ? 'active' : ''}`} onClick={() => setActiveTab('analytics')}>
+          <BarChart3 size={18} /> {t.analytics}
+        </div>
         <div className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
           <Settings size={18} /> {t.settings}
         </div>
@@ -339,6 +343,12 @@ function App() {
             </div>
             <p style={{color: '#64748b', fontSize: 14, marginBottom: 20}}>{descriptions.resumes[lang] || descriptions.resumes.en}</p>
             <ResumeList resumes={resumes} onDelete={fetchResumes} t={t} />
+          </div>
+        )}
+
+        {activeTab === 'analytics' && (
+          <div className='section'>
+            <AnalyticsPage t={t} />
           </div>
         )}
 

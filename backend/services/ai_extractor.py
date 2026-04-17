@@ -17,6 +17,8 @@ Return ONLY valid JSON with no extra text. Use this exact structure:
     "name": "Full Name",
     "email": "email@example.com",
     "phone": "phone number or empty string",
+    "location": "City, State/Country or empty string",
+    "willing_to_relocate": false,
     "skills": ["skill1", "skill2", "skill3"],
     "experience": [
         {{
@@ -33,8 +35,20 @@ Return ONLY valid JSON with no extra text. Use this exact structure:
             "year": "Year or range"
         }}
     ],
-    "total_years_experience": 0
+    "certifications": ["certification1", "certification2"],
+    "total_years_experience": 0,
+    "veteran_status": false,
+    "work_authorization": "unknown",
+    "availability": "unknown",
+    "notice_period": "unknown"
 }}
+
+For veteran_status: set true ONLY if the resume explicitly mentions military service, veteran status, or armed forces experience.
+For work_authorization: extract if mentioned (e.g., "US Citizen", "Green Card", "H1B", "OPT", "CPT", "EAD", "Authorized to work in US"). Use "unknown" if not mentioned.
+For availability: extract if mentioned (e.g., "Immediately", "2 weeks", "1 month"). Use "unknown" if not mentioned.
+For notice_period: extract if mentioned. Use "unknown" if not mentioned.
+For willing_to_relocate: set true if resume mentions "willing to relocate", "open to relocation", or similar. Otherwise false.
+For certifications: extract all professional certifications, licenses, and credentials mentioned.
 
 Resume text:
 {raw_text}
@@ -52,7 +66,6 @@ Resume text:
         
         result = response.choices[0].message.content.strip()
         
-        # Clean up if wrapped in markdown code blocks
         if result.startswith("```"):
             result = result.split("\n", 1)[1]
             result = result.rsplit("```", 1)[0]
