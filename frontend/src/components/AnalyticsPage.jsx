@@ -69,24 +69,25 @@ function AnalyticsPage({ t }) {
   const renderPieChart = (chartData, title) => (
     <div className='section' style={{marginBottom: 0}}>
       <h3 style={{fontSize: 16, marginBottom: 12}}>{title}</h3>
-      <div style={{width: '100%', height: 250}}>
+      <div style={{width: '100%', height: 280}}>
         <ResponsiveContainer>
           <PieChart>
             <Pie
               data={chartData}
               cx="50%"
-              cy="50%"
+              cy="45%"
               innerRadius={50}
               outerRadius={85}
               paddingAngle={5}
               dataKey="value"
-              label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+              label={({ value, percent }) => `${value} (${(percent * 100).toFixed(0)}%)`}
             >
               {chartData.map((entry, i) => (
                 <Cell key={i} fill={COLORS[i % COLORS.length]} />
               ))}
             </Pie>
             <Tooltip />
+            <Legend verticalAlign="bottom" height={36} />
           </PieChart>
         </ResponsiveContainer>
       </div>
