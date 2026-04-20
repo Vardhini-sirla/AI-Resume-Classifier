@@ -1,7 +1,7 @@
 import { FileText, Trash2 } from 'lucide-react'
 import axios from 'axios'
 
-const API_URL = 'https://ai-resume-classifier-7g4y.onrender.com'
+const API_URL = 'http://localhost:5000'
 
 function ResumeList({ resumes, onDelete, t }) {
   if (!resumes || resumes.length === 0) {
@@ -53,7 +53,19 @@ function ResumeList({ resumes, onDelete, t }) {
                 <FileText size={16} color='#3b82f6' />
                 {r.filename}
               </td>
-              <td>{r.status}</td>
+              <td>
+                {r.status === 'extracting' ? (
+                  <span style={{color: '#f59e0b', fontSize: 12, fontWeight: 600}}>⏳ Extracting...</span>
+                ) : r.status === 'extraction_failed' ? (
+                  <span style={{color: '#ef4444', fontSize: 12, fontWeight: 600}}>⚠ Failed</span>
+                ) : r.status === 'extracted' ? (
+                  <span style={{color: '#22c55e', fontSize: 12}}>✓ Ready</span>
+                ) : r.status === 'scored' ? (
+                  <span style={{color: '#3b82f6', fontSize: 12}}>✓ Scored</span>
+                ) : (
+                  <span style={{color: '#94a3b8', fontSize: 12}}>{r.status}</span>
+                )}
+              </td>
               <td>{r.score ? `${r.score}/100` : '-'}</td>
               <td>
                 {r.tier ? (

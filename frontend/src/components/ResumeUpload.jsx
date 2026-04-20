@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import axios from 'axios'
 import { Upload, FileCheck } from 'lucide-react'
 
-const API_URL = 'https://ai-resume-classifier-7g4y.onrender.com'
+const API_URL = 'http://localhost:5000'
 
 function ResumeUpload({ onUploadSuccess, t }) {
   const [files, setFiles] = useState([])
@@ -19,6 +19,7 @@ function ResumeUpload({ onUploadSuccess, t }) {
     if (files.length === 0) { setMessage(t.uploadArea); setMessageType('error'); return }
     setLoading(true)
     let successCount = 0
+    const failed = []
 
     for (const file of files) {
       const formData = new FormData()
@@ -27,12 +28,20 @@ function ResumeUpload({ onUploadSuccess, t }) {
         await axios.post(`${API_URL}/api/upload`, formData)
         successCount++
       } catch (err) {
-        console.error(`Failed to upload ${file.name}`)
+        const reason = err.response?.data?.errors?.[0] || err.response?.data?.error || 'Upload failed'
+        failed.push(`${file.name}: ${reason}`)
       }
     }
 
-    setMessage(`${successCount} / ${files.length} ${t.uploadSuccess}`)
-    setMessageType('success')
+    if (failed.length === 0) {
+      setMessage(`${successCount} / ${files.length} ${t.uploadSuccess}`)
+      setMessageType('success')
+    } else {
+      const summary = `${successCount} uploaded. ${failed.length} failed:\n${failed.join('\n')}`
+      setMessage(summary)
+      setMessageType(successCount > 0 ? 'success' : 'error')
+    }
+
     setFiles([])
     if (fileInputRef.current) fileInputRef.current.value = ''
     if (onUploadSuccess) onUploadSuccess()

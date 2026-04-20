@@ -2,7 +2,7 @@ import { useState } from 'react'
 import axios from 'axios'
 import { LogIn, UserPlus, Mail, Lock, User, Building } from 'lucide-react'
 
-const API_URL = 'https://ai-resume-classifier-7g4y.onrender.com'
+const API_URL = 'http://localhost:5000'
 
 function AuthPage({ onLogin, t }) {
   const [isLogin, setIsLogin] = useState(true)

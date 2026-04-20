@@ -12,7 +12,7 @@ import AnalyticsPage from './components/AnalyticsPage'
 import { TierPieChart, ScoreBarChart, ScoreDistributionChart, CandidateRadarChart } from './components/Charts'
 import translations, { languageNames } from './translations'
 
-const API_URL = 'https://ai-resume-classifier-7g4y.onrender.com'
+const API_URL = 'http://localhost:5000'
 
 function App() {
   const [resumes, setResumes] = useState([])
@@ -21,11 +21,12 @@ function App() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [selectedCandidate, setSelectedCandidate] = useState(null)
   const [filter, setFilter] = useState('all')
-  const [weights, setWeights] = useState({ skills: 50, experience: 30, education: 20 })
+  const [weights, setWeights] = useState({ skills: 60, experience: 25, education: 15 })
   const [lang, setLang] = useState('en')
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
+  const [extractingCount, setExtractingCount] = useState(0)
 
   const t = translations[lang]
 
@@ -33,12 +34,21 @@ function App() {
     try {
       const res = await axios.get(`${API_URL}/api/resumes`)
       setResumes(res.data.resumes)
+      const stillExtracting = res.data.resumes.filter(r => r.status === 'extracting').length
+      setExtractingCount(stillExtracting)
     } catch (err) {
       console.error('Failed to fetch resumes', err)
     }
   }
 
   useEffect(() => { fetchResumes() }, [])
+
+  // Poll every 3 seconds while resumes are still being extracted
+  useEffect(() => {
+    if (extractingCount === 0) return
+    const interval = setInterval(fetchResumes, 3000)
+    return () => clearInterval(interval)
+  }, [extractingCount])
 
   useEffect(() => {
     const savedToken = localStorage.getItem('token')
@@ -77,13 +87,22 @@ function App() {
   }
 
   const handleScoreAll = async (jdText) => {
+    const weightTotal = weights.skills + weights.experience + weights.education
+    if (weightTotal !== 100) {
+      alert(`Scoring weights must sum to 100. Current total: ${weightTotal}%. Go to Settings to fix this.`)
+      return
+    }
     setLoading(true)
     try {
-      const res = await axios.post(`${API_URL}/api/score-all`, { jd_text: jdText })
+      const res = await axios.post(`${API_URL}/api/score-all`, {
+        jd_text: jdText,
+        weights: weights,
+      })
       setResults(res.data.results)
       fetchResumes()
     } catch (err) {
-      alert(t.scoringFailed)
+      const msg = err.response?.data?.error || err.message || t.scoringFailed
+      alert(`Scoring failed:\n\n${msg}`)
     }
     setLoading(false)
   }
@@ -298,11 +317,20 @@ function App() {
               </>
             )}
 
+            {extractingCount > 0 && (
+              <div style={{background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: 8, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10}}>
+                <div style={{width: 10, height: 10, borderRadius: '50%', background: '#f59e0b', animation: 'pulse 1.5s infinite'}} />
+                <span style={{color: '#92400e', fontSize: 14}}>
+                  <strong>{extractingCount} resume{extractingCount > 1 ? 's' : ''}</strong> still being processed by AI... Scoring will be available once complete.
+                </span>
+              </div>
+            )}
+
             <div className='section'>
               <div className='section-header'>
                 <h2>{t.jobDescription}</h2>
               </div>
-              <JobDescription onSubmit={handleScoreAll} loading={loading} t={t} />
+              <JobDescription onSubmit={handleScoreAll} loading={loading} disabled={extractingCount > 0} t={t} />
             </div>
 
             {results.length > 0 && (
@@ -370,7 +398,15 @@ function App() {
               <label><span>{t.education}</span><span>{weights.education}%</span></label>
               <input type='range' min='0' max='100' value={weights.education} onChange={(e) => setWeights({...weights, education: parseInt(e.target.value)})} />
             </div>
-            <p style={{color: '#94a3b8', fontSize: 13}}>{t.total}: {weights.skills + weights.experience + weights.education}% {t.shouldEqual100}</p>
+            {(() => {
+              const total = weights.skills + weights.experience + weights.education
+              const ok = total === 100
+              return (
+                <p style={{color: ok ? '#22c55e' : '#f87171', fontSize: 13, fontWeight: ok ? 'normal' : 600}}>
+                  {t.total}: {total}% {ok ? '✓' : `— ${t.shouldEqual100}`}
+                </p>
+              )
+            })()}
           </div>
         )}
 
