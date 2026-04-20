@@ -10,6 +10,25 @@ function CandidateModal({ candidate, onClose, t }) {
     return '#dc2626'
   }
 
+  const confidenceLevelColor = (level) => {
+    if (level === 'High') return '#16a34a'
+    if (level === 'Medium') return '#a16207'
+    if (level === 'Low') return '#c2410c'
+    return '#dc2626'
+  }
+
+  const checkLabel = (key) => ({
+    name_found: 'Name',
+    email_found: 'Email',
+    skills_extracted: 'Skills',
+    experience_extracted: 'Experience',
+    education_extracted: 'Education',
+    experience_years: 'Years of Exp.',
+    certifications: 'Certifications',
+    location: 'Location',
+    work_authorization: 'Work Authorization',
+  }[key] ?? key)
+
   return (
     <div className='modal-overlay' onClick={onClose}>
       <div className='modal' onClick={(e) => e.stopPropagation()}>
@@ -46,6 +65,51 @@ function CandidateModal({ candidate, onClose, t }) {
             <div className='score-weight'>20% {t.weight}</div>
           </div>
         </div>
+
+        {candidate.confidence && (
+          <div style={{marginTop: 24}}>
+            <h3 style={{fontSize: 15, marginBottom: 12}}>AI Extraction Confidence</h3>
+
+            <div style={{display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12}}>
+              <div style={{flex: 1, background: '#e5e7eb', borderRadius: 9999, height: 10, overflow: 'hidden'}}>
+                <div style={{
+                  width: `${candidate.confidence.score}%`,
+                  height: '100%',
+                  background: confidenceLevelColor(candidate.confidence.level),
+                  borderRadius: 9999,
+                  transition: 'width 0.4s ease',
+                }} />
+              </div>
+              <span style={{fontWeight: 700, fontSize: 14, color: confidenceLevelColor(candidate.confidence.level), whiteSpace: 'nowrap'}}>
+                {candidate.confidence.score}% — {candidate.confidence.level}
+              </span>
+            </div>
+
+            {candidate.confidence.checks && (
+              <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8}}>
+                {Object.entries(candidate.confidence.checks).map(([key, check]) => (
+                  <div key={key} style={{
+                    background: check.score === check.max ? '#f0fdf4' : check.score > 0 ? '#fefce8' : '#fef2f2',
+                    border: `1px solid ${check.score === check.max ? '#bbf7d0' : check.score > 0 ? '#fde68a' : '#fecaca'}`,
+                    borderRadius: 8,
+                    padding: '8px 10px',
+                  }}>
+                    <div style={{fontSize: 12, color: '#64748b', marginBottom: 2}}>{checkLabel(key)}</div>
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                      <span style={{fontSize: 12, color: '#374151', flex: 1, marginRight: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}
+                            title={check.detail}>
+                        {check.detail}
+                      </span>
+                      <span style={{fontWeight: 700, fontSize: 13, color: check.score === check.max ? '#16a34a' : check.score > 0 ? '#d97706' : '#dc2626', whiteSpace: 'nowrap'}}>
+                        {check.score}/{check.max}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {candidate.details && (
           <div style={{marginTop: 20}}>
