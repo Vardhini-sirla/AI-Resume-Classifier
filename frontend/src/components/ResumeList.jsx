@@ -1,7 +1,7 @@
 import { FileText, Trash2 } from 'lucide-react'
 import axios from 'axios'
 
-const API_URL = 'http://localhost:5000'
+const API_URL = 'https://ai-resume-classifier-7g4y.onrender.com'
 
 function ResumeList({ resumes, onDelete, t, selectedResumes, setSelectedResumes }) {
   const selectable = selectedResumes !== undefined && setSelectedResumes !== undefined

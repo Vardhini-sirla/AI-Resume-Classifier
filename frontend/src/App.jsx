@@ -12,7 +12,7 @@ import AnalyticsPage from './components/AnalyticsPage'
 import { TierPieChart, ScoreBarChart, ScoreDistributionChart, CandidateRadarChart } from './components/Charts'
 import translations, { languageNames } from './translations'
 
-const API_URL = 'http://localhost:5000'
+const API_URL = 'https://ai-resume-classifier-7g4y.onrender.com'
 
 function App() {
   const [resumes, setResumes] = useState([])
