@@ -211,3 +211,108 @@ def score_all_resumes():
             "weights_used": weights,
         }
     )
+
+
+@score_bp.route("/api/score-selected", methods=["POST"])
+def score_selected_resumes():
+    """Score a specific subset of resumes against a job description."""
+    data = request.get_json()
+
+    if not data or not data.get("jd_text"):
+        return jsonify({"error": "jd_text is required"}), 400
+    if not data.get("resume_ids"):
+        return jsonify({"error": "resume_ids is required"}), 400
+
+    jd_text = data["jd_text"]
+    resume_ids = data["resume_ids"]
+    weights = _parse_weights(data)
+
+    collections = get_collections()
+
+    jd_data = extract_jd_data(jd_text)
+    if not jd_data:
+        return jsonify({"error": "Failed to parse job description"}), 500
+
+    if not jd_data.get("required_skills"):
+        return jsonify({
+            "error": "Job description is too vague to score against. "
+                     "Please include specific required skills, tools, or qualifications."
+        }), 400
+
+    try:
+        object_ids = [ObjectId(rid) for rid in resume_ids]
+    except Exception:
+        return jsonify({"error": "Invalid resume ID format"}), 400
+
+    resumes = list(collections["resumes"].find({"_id": {"$in": object_ids}}))
+    if not resumes:
+        return jsonify({"error": "No matching resumes found. Please upload resumes first."}), 404
+
+    still_extracting = [r for r in resumes if r.get("status") == "extracting"]
+    if still_extracting:
+        return jsonify({
+            "error": f"{len(still_extracting)} resume(s) are still being processed by AI. "
+                     f"Please wait a moment and try again."
+        }), 409
+
+    results = []
+    errors = []
+
+    for resume in resumes:
+        resume_id = str(resume["_id"])
+        try:
+            parsed_data = resume.get("parsed_data")
+            if parsed_data and parsed_data.get("name"):
+                resume_data = parsed_data
+            else:
+                resume_data = extract_resume_data(resume["raw_text"])
+                if not resume_data:
+                    errors.append({"resume_id": resume_id, "filename": resume["filename"], "error": "Extraction failed"})
+                    continue
+
+            result = calculate_score(resume_data, jd_data, weights)
+            confidence = calculate_confidence(resume_data)
+
+            collections["resumes"].update_one(
+                {"_id": resume["_id"]},
+                {
+                    "$set": {
+                        "parsed_data": resume_data,
+                        "score": result["total_score"],
+                        "tier": result["tier"],
+                        "status": "scored",
+                    }
+                },
+            )
+
+            results.append(
+                {
+                    "resume_id": resume_id,
+                    "filename": resume["filename"],
+                    "score": result["total_score"],
+                    "tier": result["tier"],
+                    "breakdown": result["breakdown"],
+                    "confidence": confidence,
+                }
+            )
+
+        except Exception as exc:
+            logger.exception("Error scoring resume %s: %s", resume_id, exc)
+            errors.append({"resume_id": resume_id, "filename": resume.get("filename", "?"), "error": str(exc)})
+
+    results.sort(key=lambda x: x["score"], reverse=True)
+
+    logger.info(
+        "score-selected complete: %d scored, %d errors. Weights: %s",
+        len(results), len(errors), weights,
+    )
+
+    return jsonify(
+        {
+            "job_description": jd_data,
+            "results": results,
+            "total_scored": len(results),
+            "errors": errors,
+            "weights_used": weights,
+        }
+    )

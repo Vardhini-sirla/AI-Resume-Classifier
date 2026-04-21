@@ -3,16 +3,19 @@ import axios from 'axios'
 
 const API_URL = 'http://localhost:5000'
 
-function ResumeList({ resumes, onDelete, t }) {
+function ResumeList({ resumes, onDelete, t, selectedResumes, setSelectedResumes }) {
+  const selectable = selectedResumes !== undefined && setSelectedResumes !== undefined
+
   if (!resumes || resumes.length === 0) {
     return <p style={{color: '#64748b'}}>{t.noResumes}</p>
   }
 
-  const handleDelete = async (id, filename) => {
+  const handleDelete = async (id) => {
     if (!window.confirm(`${t.deleteConfirm}`)) return
     try {
       await axios.delete(`${API_URL}/api/resumes/${id}`)
       if (onDelete) onDelete()
+      if (selectable) setSelectedResumes(prev => prev.filter(sid => sid !== id))
     } catch (err) {
       alert(t.deleteFailed)
     }
@@ -23,9 +26,27 @@ function ResumeList({ resumes, onDelete, t }) {
     try {
       await axios.delete(`${API_URL}/api/resumes/all`)
       if (onDelete) onDelete()
+      if (selectable) setSelectedResumes([])
     } catch (err) {
       alert(t.deleteFailed)
     }
+  }
+
+  const allSelected = selectable && resumes.length > 0 && resumes.every(r => selectedResumes.includes(r._id))
+  const someSelected = selectable && selectedResumes.some(id => resumes.find(r => r._id === id))
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelectedResumes(prev => prev.filter(id => !resumes.find(r => r._id === id)))
+    } else {
+      setSelectedResumes(prev => [...new Set([...prev, ...resumes.map(r => r._id)])])
+    }
+  }
+
+  const toggleOne = (id) => {
+    setSelectedResumes(prev =>
+      prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
+    )
   }
 
   return (
@@ -38,6 +59,17 @@ function ResumeList({ resumes, onDelete, t }) {
       <table className='results-table'>
         <thead>
           <tr>
+            {selectable && (
+              <th style={{width: 40}}>
+                <input
+                  type='checkbox'
+                  checked={allSelected}
+                  ref={el => { if (el) el.indeterminate = someSelected && !allSelected }}
+                  onChange={toggleAll}
+                  style={{cursor: 'pointer'}}
+                />
+              </th>
+            )}
             <th>{t.candidate}</th>
             <th>{t.status}</th>
             <th>{t.score}</th>
@@ -48,7 +80,17 @@ function ResumeList({ resumes, onDelete, t }) {
         </thead>
         <tbody>
           {resumes.map(r => (
-            <tr key={r._id}>
+            <tr key={r._id} style={selectable && selectedResumes.includes(r._id) ? {background: '#1e3a5f'} : {}}>
+              {selectable && (
+                <td>
+                  <input
+                    type='checkbox'
+                    checked={selectedResumes.includes(r._id)}
+                    onChange={() => toggleOne(r._id)}
+                    style={{cursor: 'pointer'}}
+                  />
+                </td>
+              )}
               <td style={{display: 'flex', alignItems: 'center', gap: 8}}>
                 <FileText size={16} color='#3b82f6' />
                 {r.filename}
@@ -78,7 +120,7 @@ function ResumeList({ resumes, onDelete, t }) {
                 {new Date(r.uploaded_at).toLocaleDateString()}
               </td>
               <td>
-                <button className='btn btn-danger' style={{padding: '4px 8px', fontSize: 12}} onClick={() => handleDelete(r._id, r.filename)}>
+                <button className='btn btn-danger' style={{padding: '4px 8px', fontSize: 12}} onClick={() => handleDelete(r._id)}>
                   <Trash2 size={12} />
                 </button>
               </td>

@@ -27,6 +27,7 @@ function App() {
   const [token, setToken] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [extractingCount, setExtractingCount] = useState(0)
+  const [selectedResumes, setSelectedResumes] = useState([])
 
   const t = translations[lang]
 
@@ -94,10 +95,19 @@ function App() {
     }
     setLoading(true)
     try {
-      const res = await axios.post(`${API_URL}/api/score-all`, {
-        jd_text: jdText,
-        weights: weights,
-      })
+      let res
+      if (selectedResumes.length > 0) {
+        res = await axios.post(`${API_URL}/api/score-selected`, {
+          resume_ids: selectedResumes,
+          jd_text: jdText,
+          weights: weights,
+        })
+      } else {
+        res = await axios.post(`${API_URL}/api/score-all`, {
+          jd_text: jdText,
+          weights: weights,
+        })
+      }
       setResults(res.data.results)
       fetchResumes()
     } catch (err) {
@@ -326,11 +336,69 @@ function App() {
               </div>
             )}
 
+            {resumes.length > 0 && (
+              <div className='section'>
+                <div className='section-header'>
+                  <h2>Select Resumes</h2>
+                  <div style={{display: 'flex', gap: 8, alignItems: 'center'}}>
+                    {selectedResumes.length > 0 && (
+                      <span style={{color: '#3b82f6', fontSize: 13, fontWeight: 600}}>
+                        {selectedResumes.length} selected
+                      </span>
+                    )}
+                    <button
+                      className='btn btn-outline'
+                      style={{padding: '4px 10px', fontSize: 12}}
+                      onClick={() => setSelectedResumes(resumes.map(r => r._id))}
+                    >
+                      Select All
+                    </button>
+                    <button
+                      className='btn btn-outline'
+                      style={{padding: '4px 10px', fontSize: 12}}
+                      onClick={() => setSelectedResumes([])}
+                      disabled={selectedResumes.length === 0}
+                    >
+                      Clear Selection
+                    </button>
+                  </div>
+                </div>
+                <p style={{color: '#64748b', fontSize: 13, marginBottom: 12}}>
+                  Choose specific resumes to score, or leave unselected to score all.
+                </p>
+                <div style={{maxHeight: 240, overflowY: 'auto'}}>
+                  {resumes.map(r => (
+                    <label
+                      key={r._id}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px',
+                        borderRadius: 6, cursor: 'pointer', marginBottom: 4,
+                        background: selectedResumes.includes(r._id) ? '#1e3a5f' : '#1e293b',
+                        border: `1px solid ${selectedResumes.includes(r._id) ? '#3b82f6' : '#334155'}`,
+                      }}
+                    >
+                      <input
+                        type='checkbox'
+                        checked={selectedResumes.includes(r._id)}
+                        onChange={() => setSelectedResumes(prev =>
+                          prev.includes(r._id) ? prev.filter(id => id !== r._id) : [...prev, r._id]
+                        )}
+                        style={{cursor: 'pointer', accentColor: '#3b82f6'}}
+                      />
+                      <span style={{fontSize: 13, color: '#e2e8f0', flex: 1}}>{r.filename}</span>
+                      {r.status === 'extracting' && <span style={{color: '#f59e0b', fontSize: 11}}>⏳ Processing</span>}
+                      {r.score && <span style={{color: '#94a3b8', fontSize: 11}}>{r.score}/100</span>}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className='section'>
               <div className='section-header'>
                 <h2>{t.jobDescription}</h2>
               </div>
-              <JobDescription onSubmit={handleScoreAll} loading={loading} disabled={extractingCount > 0} t={t} />
+              <JobDescription onSubmit={handleScoreAll} loading={loading} disabled={extractingCount > 0} t={t} selectedCount={selectedResumes.length} />
             </div>
 
             {results.length > 0 && (
@@ -370,7 +438,7 @@ function App() {
               <h2>{t.allResumes} ({resumes.length})</h2>
             </div>
             <p style={{color: '#64748b', fontSize: 14, marginBottom: 20}}>{descriptions.resumes[lang] || descriptions.resumes.en}</p>
-            <ResumeList resumes={resumes} onDelete={fetchResumes} t={t} />
+            <ResumeList resumes={resumes} onDelete={fetchResumes} t={t} selectedResumes={selectedResumes} setSelectedResumes={setSelectedResumes} />
           </div>
         )}
 
